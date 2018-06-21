@@ -224,6 +224,7 @@ public class AppointmentController implements Initializable {
         String user = LoginController.currentUser;
         DatePicker selectedDate = datePicker;
 
+
 //        update or new logic
         DBManager.executeInTransaction((conn) -> {
             if (isUpdate) {
