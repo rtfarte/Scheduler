@@ -7,7 +7,6 @@ package view_controller;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -32,11 +31,10 @@ import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.time.temporal.WeekFields;
 import java.util.*;
 
 /**
@@ -146,6 +144,12 @@ public class MainController implements Initializable {
         appointmentTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
 
         appointmentTableView.getItems().setAll(parseAppointmentList());
+        if (appointmentIsWithin15Minutes(appointmentList)) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Appointment Within 15 minutes");
+            alert.setHeaderText("You have an appointment in the next 15 minutes");
+            alert.showAndWait();
+        }
 
         btnAddCustomer.setOnAction(event -> addCustomerButtonPressed(event));
         btnUpdateCustomer.setOnAction(event -> updateCustomerButtonPressed(event));
@@ -302,6 +306,14 @@ public class MainController implements Initializable {
                         rs.getTimestamp("appointment.start").toLocalDateTime().plusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId()),
                         rs.getTimestamp("appointment.end").toLocalDateTime().plusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId())));
             }
+            this.appointmentList = appointmentList;
+
+
+
+            //check within 15 minutes or less from var of current time
+
+
+
 
         } catch (SQLException e) {
             System.out.println("SQL cust query error: " + e.getMessage());
@@ -309,6 +321,19 @@ public class MainController implements Initializable {
             System.out.println("Something besides the SQL went wrong." + e2.getMessage());
         }
         return appointmentList;
+    }
+
+    private boolean appointmentIsWithin15Minutes(ObservableList<AppointmentViewModel> appointmentList) {
+        //get current time and store as a var
+        ZonedDateTime currentTime = ZonedDateTime.now();
+        //for each loop to check var against start time
+        for(AppointmentViewModel appointment : appointmentList){
+            ZonedDateTime appointmentStartTime = appointment.getStart();
+            if (Duration.between(currentTime, appointmentStartTime).toMinutes() <= 15 && Duration.between(currentTime, appointmentStartTime).toMinutes() >= 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ObservableList<AppointmentViewModel> getCustomerSpecificAppointments(int customerId) {
@@ -404,6 +429,7 @@ public class MainController implements Initializable {
             Scene tableViewScene = new Scene(tableViewParent);
 //            ObservableList<AppointmentViewModel> test = getCustomerAppointments(selectedCustomer.getCustomerId());
             AppointmentController controller = loader.getController();
+            controller.setCustomerDetails(customerTableView.getSelectionModel().getSelectedItem());
             controller.setAppointmentDetails(appointmentTableView.getSelectionModel().getSelectedItem().getId());
             System.out.println(customerTableView.getSelectionModel().getSelectedItem());
             Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -442,23 +468,30 @@ public class MainController implements Initializable {
     @FXML
     private void weekRadioButtonPressed(ActionEvent event) {
 
-        LocalDate weekFromNow = now.plusDays(7);
-        FilteredList<AppointmentViewModel> filteredData = new FilteredList<AppointmentViewModel>(parseAppointmentList());
-//        filteredData.setPredicate(row -> {
-//            LocalDate rowDate = LocalDate.parse(row.getStart(), dtfTime);
-//            return rowDate.isEqual(now.minusDays(1)) && rowDate.isBefore(weekFromNow);
-//        });
+        ZonedDateTime now = ZonedDateTime.now();
+        WeekFields localWeek = WeekFields.of(Locale.getDefault());
+        int currentWeek = now.get(localWeek.weekOfWeekBasedYear());
+        ObservableList<AppointmentViewModel> filteredData = FXCollections.observableArrayList();
+        for(AppointmentViewModel appointment : appointmentList){
+            ZonedDateTime appointmentStartTime = appointment.getStart();
+            int appointmentWeek = appointmentStartTime.get(localWeek.weekOfWeekBasedYear());
+            if (currentWeek == appointmentWeek) {
+                filteredData.add(appointment);
+            }
+        }
         appointmentTableView.setItems(filteredData);
     }
 
     @FXML
     private void monthRadioButtonPressed(ActionEvent event) {
-        LocalDate monthFromNow = now.plusMonths(1);
-        FilteredList<AppointmentViewModel> filteredData = new FilteredList<AppointmentViewModel>(parseAppointmentList());
-//        filteredData.setPredicate(row -> {
-//            LocalDate rowDate = LocalDate.parse(row.getStart(), dtfTime);
-//            return rowDate.isAfter(now.minusDays(1)) && rowDate.isBefore(monthFromNow);
-//        });
+        ZonedDateTime now = ZonedDateTime.now();
+        ObservableList<AppointmentViewModel> filteredData = FXCollections.observableArrayList();
+        for(AppointmentViewModel appointment : appointmentList){
+            ZonedDateTime appointmentStartTime = appointment.getStart();
+            if (now.getMonthValue() == appointmentStartTime.getMonthValue()) {
+                filteredData.add(appointment);
+            }
+        }
         appointmentTableView.setItems(filteredData);
     }
 

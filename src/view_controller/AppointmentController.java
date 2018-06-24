@@ -69,8 +69,6 @@ public class AppointmentController implements Initializable {
     private Customer currentCustomer;
     List<Integer> cityIds;
     List<Integer> customerIds;
-    private int selectedAddressLocationId;
-    private int selectedAppointmentCustomerId;
     private SimpleDateFormat utcDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     boolean isUpdate;
     int offsetSeconds = ZoneOffset.systemDefault().getRules().getOffset(Instant.now()).getTotalSeconds();
@@ -224,16 +222,14 @@ public class AppointmentController implements Initializable {
         String user = LoginController.currentUser;
         DatePicker selectedDate = datePicker;
 
-
 //        update or new logic
         DBManager.executeInTransaction((conn) -> {
             if (isUpdate) {
-                updateExistingAppointment(title, description, cityId, contact, startHour, startMinute, endHour, endMinute, user, selectedAddressLocationId, selectedAppointmentCustomerId);
+                updateExistingAppointment(title, description, cityId, contact, startHour, startMinute, endHour, endMinute, appointmentId, customerId);
             } else {
                 createNewAppointment(customerId, title, description, cityId, contact, startHour, startMinute, endHour, endMinute, user, selectedDate);
             }
         });
-
 
         //Return to main
         Parent tableViewParent = null;
@@ -275,8 +271,29 @@ public class AppointmentController implements Initializable {
 
     }
 
-    private void updateExistingAppointment(String title, String description, int cityId, String contact, String startTime, String endtime, String user, int selectedAddressLocationId, int selectedAppointmentCustomerId) {
+    private void updateExistingAppointment(String title, String description, int cityId, String contact, String startHour, String startMinute, String endHour, String endMinute, int selectedAddressLocationId, int selectedAppointmentCustomerId) {
+        String startDateTime = convertToUTC(datePicker, startHour, startMinute);
+        String endDateTime = convertToUTC(datePicker, endHour, endMinute);
 
+        String query = "UPDATE appointment SET customerId = ?, title = ?, description = ?, location = ?, contact = ?, start = ?, end = ?,  lastUpdate = CURRENT_TIMESTAMP, lastUpdateBy =?, url = ? " +
+                "WHERE appointmentid = ?";
+        try {
+            PreparedStatement statement = DBManager.getConnection().prepareStatement((query));
+            statement.setInt(1, selectedAppointmentCustomerId);
+            statement.setString(2, title);
+            statement.setString(3, description);
+            statement.setInt(4, cityId);
+            statement.setString(5, contact);
+            statement.setString(6, startDateTime);
+            statement.setString(7, endDateTime);
+            statement.setString(8, LoginController.currentUser);
+            statement.setString(9, "");
+            statement.setInt(10, selectedAddressLocationId);
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -288,8 +305,8 @@ public class AppointmentController implements Initializable {
             while (rs.next()) {
                 return rs.getInt("cityid");
             }
-        } catch (SQLException ew) {
-            ew.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return -1;
     }
@@ -319,7 +336,8 @@ public class AppointmentController implements Initializable {
         return utcDateTimeFormatter.format(utcDate);
     }
 
-    public void setAppointmentDetails(int appointmentId) {
+    public void setAppointmentDetails(int appointmentIdToUpdate) {
+        appointmentId = appointmentIdToUpdate;
         SimpleDateFormat pickerHour = new SimpleDateFormat("HH");
         SimpleDateFormat pickerMinute = new SimpleDateFormat("mm");
 
@@ -327,7 +345,7 @@ public class AppointmentController implements Initializable {
         String query = "SELECT * FROM appointment WHERE appointmentid = ?";
         try {
             PreparedStatement statement = DBManager.getConnection().prepareStatement(query);
-            statement.setInt(1, appointmentId);
+            statement.setInt(1, appointmentIdToUpdate);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 titleComboBox.getSelectionModel().select(rs.getString("title"));
@@ -341,20 +359,8 @@ public class AppointmentController implements Initializable {
                 endTimeHourComboBox.getSelectionModel().select(DateTimeFormatter.ofPattern("HH").format(endDate));
                 endTimeMinuteComboBox.getSelectionModel().select(DateTimeFormatter.ofPattern("mm").format(endDate));
                 consultantComboBox.getSelectionModel().select(rs.getString("contact"));
-                appointmentId = rs.getInt("appointmentid");
             }
 
-//            int customerId = currentCustomer.getCustomerId();
-//            String title = titleComboBox.getValue();
-//            String description = descriptionComboBox.getValue();
-//            int cityId = getCityIdFromCityName(city);
-//            String contact = consultantComboBox.getValue().toString();
-//            String startHour = startTimeHourComboBox.getValue();
-//            String startMinute = startTimeMinuteComboBox.getValue();
-//            String endHour = endTimeHourComboBox.getValue();
-//            String endMinute = endTimeMinuteComboBox.getValue();
-//            String user = LoginController.currentUser;
-//            DatePicker selectedDate = datePicker;
         } catch (SQLException e) {
             e.printStackTrace();
         }
