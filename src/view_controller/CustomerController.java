@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
@@ -219,5 +220,49 @@ public class CustomerController implements Initializable {
         locationComboBox.getSelectionModel().select(selectedCustomer.getCountry() + " - " + selectedCustomer.getCity().getCityName());
         selectedCustomerId = selectedCustomer.getCustomerId();
         selectedCustomerAddressId = selectedCustomer.getAddressId();
+    }
+
+    private boolean validateCustomer() {
+        String name = nameTextField.getText();
+        String address = addressTextField.getText();
+        String location=  (String) locationComboBox.getSelectionModel().getSelectedItem();
+        String zip = postalCodeTextField.getText();
+        String phone = phoneTextField.getText();
+
+        String errorMessage = "";
+        //first checks to see if inputs are null
+        if (name == null || name.length() == 0) {
+            errorMessage += "Please enter a name for the customer.\n";
+        }
+        if (address == null || address.length() == 0) {
+            errorMessage += "Please enter an address for the customer.\n";
+        }
+        if (location == null) {
+            errorMessage += "Please choose a location for the customer.\n";
+        }
+        if (zip == null || zip.length() == 0) {
+            errorMessage += "Please enter the postal code for the customer\n";
+        } else if (zip.length() > 10 || zip.length() < 5){
+            errorMessage += "Please enter a valid postal code for the customer.\n";
+        }
+        if (phone == null || phone.length() == 0) {
+            errorMessage += "Please enter a 10-digit number for the customer.";
+        } else if (phone.length() < 10 || phone.length() > 15 ){
+            errorMessage += "Please enter a valid 10-digit number for the customer.\n";
+        }
+        if (errorMessage.length() == 0) {
+            return true;
+        } else {
+            // Show the error message.
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Invalid Entries");
+            alert.setHeaderText("Please correct the entries for this customer.");
+            alert.setContentText(errorMessage);
+            alert.showAndWait();
+
+            alert.showAndWait();
+
+            return false;
+        }
     }
 }

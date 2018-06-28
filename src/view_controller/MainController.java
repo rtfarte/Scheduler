@@ -112,20 +112,30 @@ public class MainController implements Initializable {
         btnAddAppointment.setDisable(true);
         btnUpdateAppointment.setDisable(true);
         btnDeleteAppointment.setDisable(true);
+        appointmentTableView.setDisable(true);
+
         //disable buttons until a row is selected
         customerTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 btnUpdateCustomer.setDisable(false);
                 btnDeleteCustomer.setDisable(false);
                 btnAddAppointment.setDisable(false);
+                appointmentTableView.setDisable(false);
 
                 appointmentTableView.setItems(getCustomerSpecificAppointments(newValue.getCustomerId()));
+            } else {
+                btnUpdateCustomer.setDisable(true);
+                btnDeleteCustomer.setDisable(true);
+                btnAddAppointment.setDisable(true);
             }
         });
         appointmentTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 btnUpdateAppointment.setDisable(false);
                 btnDeleteAppointment.setDisable(false);
+            } else {
+                btnUpdateAppointment.setDisable(true);
+                btnDeleteAppointment.setDisable(true);
             }
 
         });
@@ -150,6 +160,7 @@ public class MainController implements Initializable {
             alert.setHeaderText("You have an appointment in the next 15 minutes");
             alert.showAndWait();
         }
+        appointmentTableView.setPlaceholder(new Label("There are no appointments assigned to this customer."));
 
         btnAddCustomer.setOnAction(event -> addCustomerButtonPressed(event));
         btnUpdateCustomer.setOnAction(event -> updateCustomerButtonPressed(event));
@@ -169,7 +180,6 @@ public class MainController implements Initializable {
         weekRadio.setToggleGroup(appotintmentToggleGroup);
 
         //
-
         System.out.println("initialize called");
     }
 
@@ -308,13 +318,6 @@ public class MainController implements Initializable {
             }
             this.appointmentList = appointmentList;
 
-
-
-            //check within 15 minutes or less from var of current time
-
-
-
-
         } catch (SQLException e) {
             System.out.println("SQL cust query error: " + e.getMessage());
         } catch (Exception e2) {
@@ -357,8 +360,8 @@ public class MainController implements Initializable {
                         rs.getString("appointment.title"),
                         rs.getTimestamp("appointment.start").toLocalDateTime().plusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId()),
                         rs.getTimestamp("appointment.end").toLocalDateTime().plusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId())));
-
             }
+            this.appointmentList = appointmentList;
 
         } catch (SQLException e) {
             System.out.println("SQL cust query error: " + e.getMessage());
