@@ -6,10 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import model.Customer;
@@ -23,6 +20,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 
@@ -48,6 +46,7 @@ public class CustomerController implements Initializable {
     private ComboBox locationComboBox;
 
     boolean isUpdate;
+    private String errorMessage = "";
 
     List<Integer> cityIds;
     private int selectedCustomerAddressId;
@@ -109,24 +108,35 @@ public class CustomerController implements Initializable {
         /* [2,3,1] */
         /* ["Australia - Melbourne", "France - Paris", "USA - New York"] */
         DBManager.executeInTransaction((conn) -> {
-            if (isUpdate) {
-                updateExistingCustomer(name, address, address2, postalCode, phone, cityId, selectedCustomerAddressId, selectedCustomerId);
+            if (validateCustomer()) {
+                if (isUpdate) {
+                    updateExistingCustomer(name, address, address2, postalCode, phone, cityId, selectedCustomerAddressId, selectedCustomerId);
+                } else {
+                    createNewCustomer(name, address, address2, postalCode, phone, cityId);
+                }
+                Parent tableViewParent = null;
+                try {
+                    tableViewParent = FXMLLoader.load(getClass().getResource("Main.fxml"));
+                } catch (IOException e) {
+                    return;
+                }
+                Scene tableViewScene = new Scene(tableViewParent);
+                Stage window = (Stage) root.getScene().getWindow();
+                window.setScene(tableViewScene);
+                window.show();
             } else {
-                createNewCustomer(name, address, address2, postalCode, phone, cityId);
+//             Show the error message.
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Invalid Entries");
+                alert.setHeaderText("Please correct the entries for this customer.");
+                alert.setContentText(errorMessage);
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.OK) {
+                    errorMessage = "";
+                    alert.close();
+                }
             }
         });
-
-        Parent tableViewParent = null;
-        try {
-            tableViewParent = FXMLLoader.load(getClass().getResource("Main.fxml"));
-        } catch (IOException e) {
-            return;
-        }
-        Scene tableViewScene = new Scene(tableViewParent);
-        Stage window = (Stage) root.getScene().getWindow();
-        window.setScene(tableViewScene);
-        window.show();
-
     }
 
     private int getCityIdFromCityName(String name) {
@@ -223,46 +233,44 @@ public class CustomerController implements Initializable {
     }
 
     private boolean validateCustomer() {
+        String selectedLocation = (String) locationComboBox.getSelectionModel().getSelectedItem();
+        String[] parsedLocation = selectedLocation.split(Pattern.quote("-"));
+        String city = parsedLocation[1].trim();
+        int cityId = getCityIdFromCityName(city);
+
+
         String name = nameTextField.getText();
         String address = addressTextField.getText();
-        String location=  (String) locationComboBox.getSelectionModel().getSelectedItem();
+        String location = (String) locationComboBox.getSelectionModel().getSelectedItem();
         String zip = postalCodeTextField.getText();
         String phone = phoneTextField.getText();
 
-        String errorMessage = "";
+
         //first checks to see if inputs are null
-        if (name == null || name.length() == 0) {
+        if (name.isEmpty()) {
             errorMessage += "Please enter a name for the customer.\n";
         }
-        if (address == null || address.length() == 0) {
+        if (address.isEmpty()) {
             errorMessage += "Please enter an address for the customer.\n";
         }
-        if (location == null) {
+        if (location.equals("-")) {
             errorMessage += "Please choose a location for the customer.\n";
         }
-        if (zip == null || zip.length() == 0) {
+        if (zip.isEmpty()) {
             errorMessage += "Please enter the postal code for the customer\n";
-        } else if (zip.length() > 10 || zip.length() < 5){
-            errorMessage += "Please enter a valid postal code for the customer.\n";
         }
-        if (phone == null || phone.length() == 0) {
-            errorMessage += "Please enter a 10-digit number for the customer.";
-        } else if (phone.length() < 10 || phone.length() > 15 ){
-            errorMessage += "Please enter a valid 10-digit number for the customer.\n";
+        //Authors note:
+        //There were other measures to validate postal codes, but given that this is
+        //an international program, and with postal codes that vary wildly between different
+        //countries (eg: US: "84016-9642" and UK: "SW1W 0NY", as long as there is
+        // SOMETHING in the field, I have counted it as a valid postal code.
+        if (phone.isEmpty()) {
+            errorMessage += "Please enter a 10-digit number for the customer.\n";
+        } else if (phone.length() < 10 || phone.length() > 15) {
+            errorMessage += "The phone number must be 10-15 digits long.\n";
+        } else if(!phone.matches("\\d{10}|(?:\\d{3}-){2}\\d{4}|\\(\\d{3}\\)\\d{3}-?\\d{4}")){
+            errorMessage += "Please only use numbers, hyphens, and/or parenthesis for the phone number.";
         }
-        if (errorMessage.length() == 0) {
-            return true;
-        } else {
-            // Show the error message.
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Invalid Entries");
-            alert.setHeaderText("Please correct the entries for this customer.");
-            alert.setContentText(errorMessage);
-            alert.showAndWait();
-
-            alert.showAndWait();
-
-            return false;
-        }
+        return errorMessage.isEmpty();
     }
 }
