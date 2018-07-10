@@ -9,7 +9,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1215.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view_controller.MainController">
+<AnchorPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+            prefHeight="600.0" prefWidth="1215.0" xmlns="http://javafx.com/javafx/10.0.1"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="view_controller.MainController">
     <children>
         <HBox layoutX="37.0" layoutY="96.0" spacing="40.0">
             <children>
@@ -43,8 +45,10 @@
          </font></Label>
         <HBox layoutX="623.0" layoutY="62.0" spacing="15.0">
             <children>
-                <Button fx:id="btnAddAppointment" mnemonicParsing="false" prefHeight="25.0" prefWidth="61.0" text="Add" />
-                <Button fx:id="btnUpdateAppointment" mnemonicParsing="false" prefHeight="25.0" prefWidth="61.0" text="Update" />
+                <Button fx:id="btnAddAppointment" mnemonicParsing="false" prefHeight="27.0" prefWidth="74.0"
+                        text="Add"/>
+                <Button fx:id="btnUpdateAppointment" mnemonicParsing="false" prefHeight="27.0" prefWidth="75.0"
+                        text="Update"/>
                 <Button fx:id="btnDeleteAppointment" mnemonicParsing="false" onAction="#deleteAppointmentButtonPressed" prefHeight="25.0" prefWidth="64.0" text="Delete" />
             </children>
         </HBox>
@@ -52,8 +56,10 @@
         <RadioButton fx:id="weekViewRadio" layoutX="1020.0" layoutY="497.0" mnemonicParsing="false" onAction="#weekRadioButtonPressed" text="Week View" />
         <HBox layoutX="37.0" layoutY="59.0" spacing="15.0">
             <children>
-                <Button fx:id="btnAddCustomer" mnemonicParsing="false" onAction="#addCustomerButtonPressed" prefHeight="25.0" prefWidth="61.0" text="Add" />
-                <Button fx:id="btnUpdateCustomer" mnemonicParsing="false" prefHeight="25.0" prefWidth="61.0" text="Update" />
+                <Button fx:id="btnAddCustomer" mnemonicParsing="false" onAction="#addCustomerButtonPressed"
+                        prefHeight="27.0" prefWidth="75.0" text="Add"/>
+                <Button fx:id="btnUpdateCustomer" mnemonicParsing="false" prefHeight="27.0" prefWidth="72.0"
+                        text="Update"/>
                 <Button fx:id="btnDeleteCustomer" mnemonicParsing="false" prefHeight="25.0" prefWidth="64.0" text="Delete" />
             </children>
         </HBox>
@@ -61,8 +67,10 @@
          <font>
             <Font size="14.0" />
          </font></Label>
-        <Button fx:id="btnReports" layoutX="572.0" layoutY="493.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="64.0" text="Reports" />
-      <Label layoutX="740.0" layoutY="33.0" prefHeight="17.0" prefWidth="280.0" text="Please select a customer to add or view appointments.">
+        <Button fx:id="btnReports" layoutX="561.0" layoutY="493.0" mnemonicParsing="false" prefHeight="27.0"
+                prefWidth="82.0" text="Reports"/>
+        <Label layoutX="740.0" layoutY="33.0" prefHeight="17.0" prefWidth="428.0"
+               text="Please select a customer to add or view appointments.">
          <font>
             <Font name="System Italic" size="12.0" />
          </font>

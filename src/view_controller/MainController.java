@@ -79,8 +79,7 @@ public class MainController implements Initializable {
     @FXML
     private RadioButton weekViewRadio;
     @FXML
-    private ToggleGroup appotintmentToggleGroup;
-
+    private ToggleGroup appointmentToggleGroup;
     @FXML
     private Button btnAddAppointment;
     @FXML
@@ -173,11 +172,11 @@ public class MainController implements Initializable {
         });
 
         //set toggle group and radio buttons
-        appotintmentToggleGroup = new ToggleGroup();
+        appointmentToggleGroup = new ToggleGroup();
         RadioButton monthRadio = this.monthViewRadio;
         RadioButton weekRadio = this.weekViewRadio;
-        monthRadio.setToggleGroup(appotintmentToggleGroup);
-        weekRadio.setToggleGroup(appotintmentToggleGroup);
+        monthRadio.setToggleGroup(appointmentToggleGroup);
+        weekRadio.setToggleGroup(appointmentToggleGroup);
 
         //
         System.out.println("initialize called");
@@ -442,6 +441,7 @@ public class MainController implements Initializable {
             //fallthrough
         }
     }
+
 
     @FXML
     private void deleteAppointmentButtonPressed(ActionEvent event) {
