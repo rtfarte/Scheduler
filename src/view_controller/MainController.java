@@ -325,7 +325,7 @@ public class MainController implements Initializable {
         return appointmentList;
     }
 
-    private boolean appointmentIsWithin15Minutes(ObservableList<AppointmentViewModel> appointmentList) {
+    public boolean appointmentIsWithin15Minutes(ObservableList<AppointmentViewModel> appointmentList) {
         //get current time and store as a var
         ZonedDateTime currentTime = ZonedDateTime.now();
         //for each loop to check var against start time
@@ -402,6 +402,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void addAppointmentButtonPressed(ActionEvent event) {
+        System.out.println("add");
         try {
             selectedCustomer = customerTableView.getSelectionModel().getSelectedItem();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("Appointment.fxml"));
@@ -424,6 +425,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void updateAppointmentButtonPressed(ActionEvent event) {
+        System.out.println("update");
         try {
             selectedCustomer = customerTableView.getSelectionModel().getSelectedItem();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("Appointment.fxml"));
@@ -469,7 +471,7 @@ public class MainController implements Initializable {
     }
 
     @FXML
-    private void weekRadioButtonPressed(ActionEvent event) {
+    public void weekRadioButtonPressed(ActionEvent event) {
 
         ZonedDateTime now = ZonedDateTime.now();
         WeekFields localWeek = WeekFields.of(Locale.getDefault());
