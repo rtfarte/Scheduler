@@ -22,7 +22,6 @@ import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -70,14 +69,6 @@ public class AppointmentController implements Initializable {
     private SimpleDateFormat utcDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     boolean isUpdate;
     int offsetSeconds = ZoneOffset.systemDefault().getRules().getOffset(Instant.now()).getTotalSeconds();
-
-    String startHour = startTimeHourComboBox.getValue();
-    String startMinute = startTimeMinuteComboBox.getValue();
-    String endHour = endTimeHourComboBox.getValue();
-    String endMinute = endTimeMinuteComboBox.getValue();
-
-    String startDateTime = convertToUTC(datePicker, startHour, startMinute);
-    String endDateTime = convertToUTC(datePicker, endHour, endMinute);
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -431,9 +422,12 @@ public class AppointmentController implements Initializable {
             errorMessage += "Your appointment start and end times are invalid.\n";
         }
         //checks user's existing appointments for time conflicts
-        if (hasAppointmentConflict(startDateTime, endDateTime)) {
-            errorMessage += "Appointment times conflict with Consultant's existing appointments. Please select a new time.\n";
-        }
+//        if (hasAppointmentConflict(startUTC, endUTC)){
+//            errorMessage += "Appointment times conflict with Consultant's existing appointments. Please select a new time.\n";
+//        }
+//        } catch (SQLException e) {
+//                e.printStackTrace();
+//        }
 //            if (consultantComboBox.getValue() == null) {
 //            throw new NullPointerException( errorMessage += "Please select a consultant for this appointment.");
 //
@@ -445,34 +439,45 @@ public class AppointmentController implements Initializable {
         }
     }
 
-    private boolean hasAppointmentConflict(String startDateTime, String endDateTime) {
-
-        try {
-            PreparedStatement statement = DBManager.getConnection().prepareStatement(
-                    "SELECT * FROM appointment "
-                            + "WHERE (? BETWEEN start AND end OR ? BETWEEN start AND end OR ? < start AND ? > end) "
-                            + "AND (createdBy = ? AND appointmentID != ?)");
-            statement.setTimestamp(1, Timestamp.valueOf(startDateTime));
-            statement.setTimestamp(2, Timestamp.valueOf(endDateTime));
-            statement.setTimestamp(3, Timestamp.valueOf(startDateTime));
-            statement.setTimestamp(4, Timestamp.valueOf(endDateTime));
-            statement.setString(5, LoginController.currentUser);
-            statement.setInt(6, appointmentId);
-
-            ResultSet rs = statement.executeQuery();
-
-            if (rs.next()) {
-                return true;
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Check your SQL");
-            e.printStackTrace();
-        } catch (Exception e) {
-            System.out.println("Something besides the SQL went wrong.");
-            e.printStackTrace();
-        }
-        return false;
-    }
+//    private boolean hasAppointmentConflict(ZonedDateTime newStart, ZonedDateTime newEnd) throws SQLException {
+//        String apptID;
+//        String consultant;
+//        if (isOkClicked()) {
+//            //edited appointment
+//            apptID = selectedAppt.getAppointmentId();
+//            consultant = selectedAppt.getUser();
+//        } else {
+//            //new appointment
+//            apptID = "0";
+//            consultant = LoginController.currentUser;
+//        }
+//        System.out.println("ApptID: " + apptID);
+//
+//        try{
+//            PreparedStatement pst = DBManager.getConnection().prepareStatement(
+//                    "SELECT * FROM appointment "
+//                    + "WHERE (? BETWEEN start AND end OR ? BETWEEN start AND end OR ? < start AND ? > end) "
+//                    + "AND (createdBy = ? AND appointmentID != ?)");
+//            pst.setTimestamp(1, Timestamp.valueOf(newStart.toLocalDateTime()));
+//            pst.setTimestamp(2, Timestamp.valueOf(newEnd.toLocalDateTime()));
+//            pst.setTimestamp(3, Timestamp.valueOf(newStart.toLocalDateTime()));
+//            pst.setTimestamp(4, Timestamp.valueOf(newEnd.toLocalDateTime()));
+//            pst.setString(5, consultant);
+//            pst.setString(6, apptID);
+//            ResultSet rs = pst.executeQuery();
+//
+//            if(rs.next()) {
+//                return true;
+//            }
+//
+//        } catch (SQLException e) {
+//            System.out.println("Check your SQL");
+//            e.printStackTrace();
+//        } catch (Exception e) {
+//            System.out.println("Something besides the SQL went wrong.");
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
 
 }
