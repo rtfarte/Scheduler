@@ -10,10 +10,10 @@
 <AnchorPane fx:id="root" prefHeight="438.0" prefWidth="314.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view_controller.AppointmentsByTypeReportController">
    <children>
       <Label layoutX="95.0" layoutY="27.0" prefHeight="27.0" prefWidth="127.0" text="Appointments By Type" />
-      <TableView layoutX="58.0" layoutY="74.0" prefHeight="293.0" prefWidth="200.0">
+      <TableView fx:id="appointmentTableView" layoutX="58.0" layoutY="74.0" prefHeight="293.0" prefWidth="200.0">
         <columns>
-          <TableColumn prefWidth="75.0" text="Type" />
-          <TableColumn prefWidth="75.0" text="Amount" />
+          <TableColumn fx:id="appointmentTypeColumn" prefWidth="75.0" text="Type" />
+          <TableColumn fx:id="appointmentAmountColumn" prefWidth="75.0" text="Amount" />
         </columns>
          <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

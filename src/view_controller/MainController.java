@@ -176,9 +176,6 @@ public class MainController implements Initializable {
         RadioButton weekRadio = this.weekViewRadio;
         monthRadio.setToggleGroup(appointmentToggleGroup);
         weekRadio.setToggleGroup(appointmentToggleGroup);
-
-        //
-        System.out.println("initialize called");
     }
 
     public static Customer getSelectedCustomer() {
@@ -504,7 +501,7 @@ public class MainController implements Initializable {
         alert.setHeaderText("PLEASE CHOOSE A REPORT");
 
         ButtonType buttonOne = new ButtonType("Appointments By Type");
-        ButtonType buttonTwo = new ButtonType("Appointments By City");
+        ButtonType buttonTwo = new ButtonType("Cities Per Country");
         ButtonType buttonCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().setAll(buttonOne, buttonTwo, buttonCancel);
@@ -522,10 +519,10 @@ public class MainController implements Initializable {
                 window.setScene(tableViewScene);
                 window.show();
             } else if (result.get() == buttonTwo) {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("AppointmentsByCityReport.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("CountriesReport.fxml"));
                 Parent tableViewParent = loader.load();
                 Scene tableViewScene = new Scene(tableViewParent);
-                AppointmentsByCityReportController controller = loader.getController();
+                CountriesReportController controller = loader.getController();
 //                controller.setCustomerDetails(customerTableView.getSelectionModel().getSelectedItem());
                 System.out.println(customerTableView.getSelectionModel().getSelectedItem());
                 Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();

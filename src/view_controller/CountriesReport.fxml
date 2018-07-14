@@ -6,14 +6,13 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-
-<AnchorPane fx:id="root" prefHeight="448.0" prefWidth="336.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view_controller.AppointmentsByCityReportController">
+<AnchorPane fx:id="root" prefHeight="448.0" prefWidth="336.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view_controller.CountriesReportController">
    <children>
-      <Label layoutX="111.0" layoutY="39.0" text="Appointments By City" />
-      <TableView layoutX="68.0" layoutY="75.0" prefHeight="290.0" prefWidth="200.0">
+      <Label layoutX="121.0" layoutY="39.0" text="Cities Per Country" />
+      <TableView fx:id="appointmentTableView" layoutX="68.0" layoutY="75.0" prefHeight="290.0" prefWidth="200.0">
         <columns>
-          <TableColumn prefWidth="75.0" text="City" />
-          <TableColumn prefWidth="75.0" text="Amount" />
+          <TableColumn fx:id="countryColumn" prefWidth="75.0" text="Country" />
+          <TableColumn fx:id="amountColumn" prefWidth="75.0" text="Amount" />
         </columns>
          <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

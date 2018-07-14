@@ -14,7 +14,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import model.TypeReportView;
+import model.CountriesReportView;
 import util.DBManager;
 
 import java.io.IOException;
@@ -24,19 +24,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 
-public class AppointmentsByTypeReportController implements Initializable {
+public class CountriesReportController implements Initializable {
     @FXML
     private AnchorPane root;
     @FXML
     private Button btnClose;
     @FXML
-    private TableView<TypeReportView> appointmentTableView;
+    private TableView<CountriesReportView> appointmentTableView;
     @FXML
-    private TableColumn<TypeReportView, String> appointmentTypeColumn;
+    private TableColumn<CountriesReportView, String> countryColumn;
     @FXML
-    private TableColumn<TypeReportView, String> appointmentAmountColumn;
+    private TableColumn<CountriesReportView, String> amountColumn;
 
-    private ObservableList<TypeReportView> appointmentList;
+    private ObservableList<CountriesReportView> appointmentList;
 
 
     @Override
@@ -44,21 +44,23 @@ public class AppointmentsByTypeReportController implements Initializable {
         btnClose.setOnAction(this::btnClosePressed);
 
         appointmentTableView.getItems().setAll(parseAppointmentList());
-        appointmentTypeColumn.setCellValueFactory(new PropertyValueFactory<>("Type"));
-        appointmentAmountColumn.setCellValueFactory(new PropertyValueFactory<>("Amount"));
+        countryColumn.setCellValueFactory(new PropertyValueFactory<>("Country"));
+        amountColumn.setCellValueFactory(new PropertyValueFactory<>("Amount"));
     }
 
 
-    private ObservableList<TypeReportView> parseAppointmentList() {
+    private ObservableList<CountriesReportView> parseAppointmentList() {
 
-        ObservableList<TypeReportView> appointmentList = FXCollections.observableArrayList();
+        String query = "SELECT c.country, COUNT(DISTINCT ci.city) AS \"Amount\" FROM country c INNER JOIN city ci ON c.countryid = ci.countryId GROUP BY c.country";
+
+        ObservableList<CountriesReportView> appointmentList = FXCollections.observableArrayList();
         try {
-            PreparedStatement statement = DBManager.getConnection().prepareStatement("SELECT description AS \"Type\", COUNT(*) as \"Amount\" FROM appointment");
+            PreparedStatement statement = DBManager.getConnection().prepareStatement(query);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
-                appointmentList.add(new TypeReportView(
-               rs.getString("Type"),
-               rs.getString("Amount")));
+                appointmentList.add(new CountriesReportView(
+                        rs.getString("Country"),
+                        rs.getString("Amount")));
             }
             this.appointmentList = appointmentList;
 
@@ -88,12 +90,3 @@ public class AppointmentsByTypeReportController implements Initializable {
         window.show();
     }
 }
-
-
-
-
-
-
-
-
-
