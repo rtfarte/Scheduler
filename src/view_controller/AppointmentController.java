@@ -11,7 +11,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import model.Customer;
@@ -22,7 +25,6 @@ import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -61,8 +63,6 @@ public class AppointmentController implements Initializable {
     @FXML
     private Button btnCancel;
 
-    private String errorMessage = "";
-
     private int appointmentId;
     private Customer currentCustomer;
     List<Integer> cityIds;
@@ -70,14 +70,6 @@ public class AppointmentController implements Initializable {
     private SimpleDateFormat utcDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     boolean isUpdate;
     int offsetSeconds = ZoneOffset.systemDefault().getRules().getOffset(Instant.now()).getTotalSeconds();
-
-    String startHour = startTimeHourComboBox.getValue();
-    String startMinute = startTimeMinuteComboBox.getValue();
-    String endHour = endTimeHourComboBox.getValue();
-    String endMinute = endTimeMinuteComboBox.getValue();
-
-    String startDateTime = convertToUTC(datePicker, startHour, startMinute);
-    String endDateTime = convertToUTC(datePicker, endHour, endMinute);
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -129,6 +121,7 @@ public class AppointmentController implements Initializable {
                 "17"
         );
     }
+
     private void fillMinutes() {
         startTimeMinuteComboBox.getItems().addAll(
                 "00",
@@ -196,16 +189,7 @@ public class AppointmentController implements Initializable {
     }
 
     private void cancelButtonPressed(ActionEvent event) {
-        Parent tableViewParent = null;
-        try {
-            tableViewParent = FXMLLoader.load(getClass().getResource("Main.fxml"));
-        } catch (IOException e) {
-            return;
-        }
-        Scene tableViewScene = new Scene(tableViewParent);
-        Stage window = (Stage) root.getScene().getWindow();
-        window.setScene(tableViewScene);
-        window.show();
+        goToMain();
     }
 
     private void saveButtonPressed(ActionEvent event) {
@@ -230,65 +214,40 @@ public class AppointmentController implements Initializable {
 
 //        update or new logic
         DBManager.executeInTransaction((conn) -> {
-            if (validateAppointment()) {
-                if (isUpdate) {
-                    updateExistingAppointment(title, description, cityId, contact, startHour, startMinute, endHour, endMinute, appointmentId, customerId);
-                } else {
-                    createNewAppointment(customerId, title, description, cityId, contact, startHour, startMinute, endHour, endMinute, user, selectedDate);
-                }
-                //Return to main
-                Parent tableViewParent = null;
-                try {
-                    tableViewParent = FXMLLoader.load(getClass().getResource("Main.fxml"));
-                } catch (IOException e) {
-                    return;
-                }
-                Scene tableViewScene = new Scene(tableViewParent);
-                Stage window = (Stage) root.getScene().getWindow();
-                window.setScene(tableViewScene);
-                window.show();
+            if (isUpdate) {
+                updateExistingAppointment(title, description, cityId, contact, startHour, startMinute, endHour, endMinute, appointmentId, customerId);
             } else {
-                // Show the error message.
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Invalid Entries");
-                alert.setHeaderText("Please correct the entries for this appointment.");
-                alert.setContentText(errorMessage);
-                Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == ButtonType.OK) {
-                    errorMessage = "";
-                    alert.close();
-                }
+                createNewAppointment(customerId, title, description, cityId, contact, startHour, startMinute, endHour, endMinute, user, selectedDate);
             }
         });
+
+        //Return to main
+        goToMain();
     }
 
     private void createNewAppointment(int customerId, String title, String description, int cityId, String contact, String startHour, String startMinute, String endHour, String endMinute, String user, DatePicker selectedDate) {
         int addressId;
-        if (validateAppointment()) {
-            String startDateTime = convertToUTC(datePicker, startHour, startMinute);
-            String endDateTime = convertToUTC(datePicker, endHour, endMinute);
+        String startDateTime = convertToUTC(datePicker, startHour, startMinute);
+        String endDateTime = convertToUTC(datePicker, endHour, endMinute);
 
-            String query = "INSERT INTO appointment (customerId, title, description, location, contact, start, end, createDate, createdBy, lastUpdate, lastUpdateBy, url)" +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?, ?)";
-            try {
-                PreparedStatement statement = DBManager.getConnection().prepareStatement((query));
-                statement.setInt(1, customerId);
-                statement.setString(2, title);
-                statement.setString(3, description);
-                statement.setInt(4, cityId);
-                statement.setString(5, contact);
-                statement.setString(6, startDateTime);
-                statement.setString(7, endDateTime);
-                statement.setString(8, LoginController.currentUser);
-                statement.setString(9, LoginController.currentUser);
-                statement.setString(10, "");
+        String query = "INSERT INTO appointment (customerId, title, description, location, contact, start, end, createDate, createdBy, lastUpdate, lastUpdateBy, url)" +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?, ?)";
+        try {
+            PreparedStatement statement = DBManager.getConnection().prepareStatement((query));
+            statement.setInt(1, customerId);
+            statement.setString(2, title);
+            statement.setString(3, description);
+            statement.setInt(4, cityId);
+            statement.setString(5, contact);
+            statement.setString(6, startDateTime);
+            statement.setString(7, endDateTime);
+            statement.setString(8, LoginController.currentUser);
+            statement.setString(9, LoginController.currentUser);
+            statement.setString(10, "");
 
-                statement.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        } else {
-
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
     }
@@ -317,6 +276,7 @@ public class AppointmentController implements Initializable {
             e.printStackTrace();
         }
     }
+
 
     private int getCityIdFromCityName(String name) {
         try {
@@ -402,77 +362,113 @@ public class AppointmentController implements Initializable {
         return "";
     }
 
-    private boolean validateAppointment() throws NullPointerException{
+    private boolean validateAppointment() {
         String title = titleComboBox.getValue();
         String description = descriptionComboBox.getValue();
         LocalDate localDate = datePicker.getValue();
 //        LocalTime startTime = LocalTime.parse(startComboBox.getSelectionModel().getSelectedItem(), timeDTF);
 //        LocalTime endTime = LocalTime.parse(endComboBox.getSelectionModel().getSelectedItem(), timeDTF);
-//
-//        //first checks to see if inputs are null
+
+//        LocalDateTime startDT = LocalDateTime.of(localDate, startTime);
+//        LocalDateTime endDT = LocalDateTime.of(localDate, endTime);
+
+//        ZonedDateTime startUTC = startDT.atZone(zid).withZoneSameInstant(ZoneId.of("UTC"));
+//        ZonedDateTime endUTC = endDT.atZone(zid).withZoneSameInstant(ZoneId.of("UTC"));
+
+        String errorMessage = "";
+        //first checks to see if inputs are null
         if (title == null || title.length() == 0) {
-            errorMessage += "Please enter an appointment title.\n";
+            errorMessage += "Please enter an Appointment title.\n";
         }
         if (description == null || description.length() == 0) {
-            errorMessage += "Please select an appointment description.\n";
+            errorMessage += "Please select an Appointment type.\n";
         }
-        if(datePicker.getValue() == null){
-            errorMessage += "Please select a date for this appointment.\n";
-        }
-//        if (locationComboBox.getValue() == null){
-//            errorMessage += "Please select a location for this appointment";
+//        if (startUTC == null) {
+//            errorMessage += "Please select a Start time";
 //        }
-        if (startTimeHourComboBox.getValue() == null || startTimeMinuteComboBox == null) {
-            errorMessage += "Please select a valid start time.\n";
-        }
-        if (endTimeHourComboBox.getValue() == null || endTimeMinuteComboBox.getValue() == null) {
-            errorMessage += "Please select an valid end time.\n";
-        } else if ((Integer.parseInt(startTimeHourComboBox.getValue() + Integer.parseInt(startTimeMinuteComboBox.getValue()))) >= (Integer.parseInt(endTimeHourComboBox.getValue() + Integer.parseInt(endTimeMinuteComboBox.getValue())))){
-            errorMessage += "Your appointment start and end times are invalid.\n";
-        }
-        //checks user's existing appointments for time conflicts
-        if (hasAppointmentConflict(startDateTime, endDateTime)) {
-            errorMessage += "Appointment times conflict with Consultant's existing appointments. Please select a new time.\n";
-        }
-//            if (consultantComboBox.getValue() == null) {
-//            throw new NullPointerException( errorMessage += "Please select a consultant for this appointment.");
-//
+//        if (endUTC == null) {
+//            errorMessage += "Please select an End time.\n";
+//            //checks to make sure Start and End times are not the same
+//        } else if (endUTC.equals(startUTC) || endUTC.isBefore(startUTC)){
+//            errorMessage += "End time must be after Start time.\n";
+//        } else try {
+//            //checks user's existing appointments for time conflicts
+//            if (hasAppointmentConflict(startUTC, endUTC)){
+//                errorMessage += "Appointment times conflict with Consultant's existing appointments. Please select a new time.\n";
 //            }
-        if (errorMessage.isEmpty()) {
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+        if (errorMessage.length() == 0) {
             return true;
         } else {
-            return false;
-        }
-    }
-
-    private boolean hasAppointmentConflict(String startDateTime, String endDateTime) {
-
-        try {
-            PreparedStatement statement = DBManager.getConnection().prepareStatement(
-                    "SELECT * FROM appointment "
-                            + "WHERE (? BETWEEN start AND end OR ? BETWEEN start AND end OR ? < start AND ? > end) "
-                            + "AND (createdBy = ? AND appointmentID != ?)");
-            statement.setTimestamp(1, Timestamp.valueOf(startDateTime));
-            statement.setTimestamp(2, Timestamp.valueOf(endDateTime));
-            statement.setTimestamp(3, Timestamp.valueOf(startDateTime));
-            statement.setTimestamp(4, Timestamp.valueOf(endDateTime));
-            statement.setString(5, LoginController.currentUser);
-            statement.setInt(6, appointmentId);
-
-            ResultSet rs = statement.executeQuery();
-
-            if (rs.next()) {
-                return true;
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Check your SQL");
-            e.printStackTrace();
-        } catch (Exception e) {
-            System.out.println("Something besides the SQL went wrong.");
-            e.printStackTrace();
+            // Show the error message.
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Invalid Entries");
+            alert.setHeaderText("Please correct the entries for this appointment.");
+            alert.setContentText(errorMessage);
+            alert.showAndWait();
         }
         return false;
+//    }
+
+//    private boolean hasAppointmentConflict(ZonedDateTime newStart, ZonedDateTime newEnd) throws SQLException {
+//        String apptID;
+//        String consultant;
+//        if (isOkClicked()) {
+//            //edited appointment
+//            apptID = selectedAppt.getAppointmentId();
+//            consultant = selectedAppt.getUser();
+//        } else {
+//            //new appointment
+//            apptID = "0";
+//            consultant = currentUser.getUsername();
+//        }
+//        System.out.println("ApptID: " + apptID);
+//
+//        try{
+//
+//
+//            PreparedStatement pst = DBManager.getConnection().prepareStatement(
+//                    "SELECT * FROM appointment "
+//                            + "WHERE (? BETWEEN start AND end OR ? BETWEEN start AND end OR ? < start AND ? > end) "
+//                            + "AND (createdBy = ? AND appointmentID != ?)");
+//            pst.setTimestamp(1, Timestamp.valueOf(newStart.toLocalDateTime()));
+//            pst.setTimestamp(2, Timestamp.valueOf(newEnd.toLocalDateTime()));
+//            pst.setTimestamp(3, Timestamp.valueOf(newStart.toLocalDateTime()));
+//            pst.setTimestamp(4, Timestamp.valueOf(newEnd.toLocalDateTime()));
+//            pst.setString(5, consultant);
+//            pst.setString(6, apptID);
+//            ResultSet rs = pst.executeQuery();
+//
+//            if(rs.next()) {
+//                return true;
+//            }
+//
+//        } catch (SQLException sqe) {
+//            System.out.println("Check your SQL");
+//            sqe.printStackTrace();
+//        } catch (Exception e) {
+//            System.out.println("Something besides the SQL went wrong.");
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
+
     }
+
+    private void goToMain() {
+        Parent tableViewParent = null;
+        try {
+            tableViewParent = FXMLLoader.load(getClass().getResource("Main.fxml"));
+        } catch (IOException e) {
+            return;
+        }
+        Scene tableViewScene = new Scene(tableViewParent);
+        Stage window = (Stage) root.getScene().getWindow();
+        window.setScene(tableViewScene);
+        window.show();
+    }
+
 
 }

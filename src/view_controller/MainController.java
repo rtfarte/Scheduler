@@ -166,8 +166,7 @@ public class MainController implements Initializable {
         btnDeleteCustomer.setOnAction(event -> deleteCustomerButtonPressed(event));
         btnAddAppointment.setOnAction(event -> addAppointmentButtonPressed(event));
         btnUpdateAppointment.setOnAction(event -> updateAppointmentButtonPressed(event));
-        btnReports.setOnAction(event -> {
-            reportsButtonPressed();
+        btnReports.setOnAction(event -> { reportsButtonPressed(event);
             event.consume();
         });
 
@@ -398,8 +397,6 @@ public class MainController implements Initializable {
         }
     }
 
-
-
     @FXML
     private void addAppointmentButtonPressed(ActionEvent event) {
         System.out.println("add");
@@ -501,27 +498,43 @@ public class MainController implements Initializable {
     }
 
     @FXML
-    private void reportsButtonPressed() {
+    private void reportsButtonPressed(ActionEvent event) {
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Reports Selection");
         alert.setHeaderText("PLEASE CHOOSE A REPORT");
 
-        ButtonType buttonOne = new ButtonType("Uno");
-        ButtonType buttonTwo = new ButtonType("dos");
-        ButtonType buttonThree = new ButtonType("tres");
+        ButtonType buttonOne = new ButtonType("Appointments By Type");
+        ButtonType buttonTwo = new ButtonType("Appointments By City");
         ButtonType buttonCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
 
-        alert.getButtonTypes().setAll(buttonOne, buttonTwo, buttonThree, buttonCancel);
+        alert.getButtonTypes().setAll(buttonOne, buttonTwo, buttonCancel);
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == buttonOne) {
-            System.out.println("UNNNOOOOOO");
-        } else if (result.get() == buttonTwo) {
-            System.out.println("DOOOOOSSS");
-        } else if (result.get() == buttonThree) {
-            System.out.println("TRREEEEEFIDDDYY");
-        } else {
-            System.out.println("CANCELCANCELCANCEL");
+        try {
+            if (result.get() == buttonOne) {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("AppointmentsByTypeReport.fxml"));
+                Parent tableViewParent = loader.load();
+                Scene tableViewScene = new Scene(tableViewParent);
+                AppointmentsByTypeReportController controller = loader.getController();
+//                controller.setCustomerDetails(customerTableView.getSelectionModel().getSelectedItem());
+                System.out.println(customerTableView.getSelectionModel().getSelectedItem());
+                Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                window.setScene(tableViewScene);
+                window.show();
+            } else if (result.get() == buttonTwo) {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("AppointmentsByCityReport.fxml"));
+                Parent tableViewParent = loader.load();
+                Scene tableViewScene = new Scene(tableViewParent);
+                AppointmentsByCityReportController controller = loader.getController();
+//                controller.setCustomerDetails(customerTableView.getSelectionModel().getSelectedItem());
+                System.out.println(customerTableView.getSelectionModel().getSelectedItem());
+                Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                window.setScene(tableViewScene);
+                window.show();
+            }
+
+        } catch(IOException e){
+            e.printStackTrace();
         }
     }
 }

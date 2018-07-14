@@ -81,16 +81,7 @@ public class CustomerController implements Initializable {
     }
 
     public void cancelButtonPressed(ActionEvent event) {
-        Parent tableViewParent = null;
-        try {
-            tableViewParent = FXMLLoader.load(getClass().getResource("Main.fxml"));
-        } catch (IOException e) {
-            return;
-        }
-        Scene tableViewScene = new Scene(tableViewParent);
-        Stage window = (Stage) root.getScene().getWindow();
-        window.setScene(tableViewScene);
-        window.show();
+       goToMain();
     }
 
     public void saveButtonPressed(ActionEvent event) {
@@ -272,5 +263,19 @@ public class CustomerController implements Initializable {
             errorMessage += "Please only use numbers, hyphens, and/or parenthesis for the phone number.";
         }
         return errorMessage.isEmpty();
+    }
+
+
+    private void goToMain() {
+        Parent tableViewParent = null;
+        try {
+            tableViewParent = FXMLLoader.load(getClass().getResource("Main.fxml"));
+        } catch (IOException e) {
+            return;
+        }
+        Scene tableViewScene = new Scene(tableViewParent);
+        Stage window = (Stage) root.getScene().getWindow();
+        window.setScene(tableViewScene);
+        window.show();
     }
 }
