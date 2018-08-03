@@ -15,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import model.Customer;
+import sun.util.resources.cldr.pt.CurrencyNames_pt_ST;
 import util.DBManager;
 
 import java.io.IOException;
@@ -459,20 +460,19 @@ public class AppointmentController implements Initializable {
 
     private boolean hasAppointmentConflict(String newStart, String newEnd) throws SQLException {
 //        int apptID;
-        String consultant = consultantComboBox.getValue();
         System.out.println("ApptID: " + this.appointmentId);
 
         try{
             PreparedStatement pst = DBManager.getConnection().prepareStatement(
                     "SELECT * FROM appointment "
                     + "WHERE (? BETWEEN start AND end OR ? BETWEEN start AND end OR ? < start AND ? > end) "
-                    + "AND (createdBy = ? AND appointmentID != ?)");
+                    + "AND appointmentID != ? and customerId = ?");
             pst.setString(1, newStart);
             pst.setString(2, newEnd);
             pst.setString(3, newStart);
             pst.setString(4, newEnd);
-            pst.setString(5, consultant);
-            pst.setInt(6, appointmentId);
+            pst.setInt(5, appointmentId);
+            pst.setInt(6, currentCustomer.getCustomerId());
             ResultSet rs = pst.executeQuery();
 
             if(rs.next()) {
