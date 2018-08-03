@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 public class CountriesReportController implements Initializable {
+
     @FXML
     private AnchorPane root;
     @FXML

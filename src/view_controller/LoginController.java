@@ -11,13 +11,15 @@ import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import util.DBManager;
+import util.LoggerUtil;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Calendar;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * FXML Controller class
@@ -45,6 +47,8 @@ public class LoginController implements Initializable {
     @FXML
     Label loginLabel;
     public static String currentUser = "";
+    private final static Logger LOGGER = Logger.getLogger(LoggerUtil.class.getName());
+
 
     ResourceBundle resources = ResourceBundle.getBundle("resources/Strings", Locale.getDefault());
 
@@ -71,7 +75,7 @@ public class LoginController implements Initializable {
                 mainScreenStage.setScene(mainScreenScene);
                 mainScreenStage.show();
                 currentUser = usernameTextField.getText();
-                System.out.println("Logging in: " + currentUser);
+                LOGGER.log(Level.INFO, "Login success: {0}", currentUser);
             } catch (IOException e) {
                 e.printStackTrace();
             }

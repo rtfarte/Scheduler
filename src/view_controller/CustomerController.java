@@ -11,6 +11,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import model.Customer;
 import util.DBManager;
+import util.LoggerUtil;
 
 import java.io.IOException;
 import java.net.URL;
@@ -22,9 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class CustomerController implements Initializable {
+    private final static Logger LOGGER = Logger.getLogger(LoggerUtil.class.getName());
+
+
 
     @FXML
     private AnchorPane root;
@@ -104,6 +109,7 @@ public class CustomerController implements Initializable {
                     updateExistingCustomer(name, address, address2, postalCode, phone, cityId, selectedCustomerAddressId, selectedCustomerId);
                 } else {
                     createNewCustomer(name, address, address2, postalCode, phone, cityId);
+
                 }
                 Parent tableViewParent = null;
                 try {

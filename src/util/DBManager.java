@@ -1,14 +1,13 @@
 package util;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DBManager {
+    private final static Logger LOGGER = Logger.getLogger(LoggerUtil.class.getName());
+
 
     public static final String DB_NAME = "U04oOs";
     public static final String DRIVER_URL = "com.mysql.jdbc.Driver";
@@ -36,7 +35,7 @@ public class DBManager {
         try {
             Class.forName(DRIVER_URL);
             conn = DriverManager.getConnection(CONNECTION_STRING, USER_NAME, DB_PASSWORD);
-            System.out.println("Connection established: " + DB_NAME);
+            LOGGER.log(Level.INFO, "Connection established: {0}", DB_NAME);
             return true;
         } catch (SQLException e) {
             System.out.println("SQLException: " + e.getMessage());

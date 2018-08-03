@@ -7,6 +7,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import sun.security.util.Resources;
 import util.DBManager;
+import util.LoggerUtil;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -74,8 +75,10 @@ public class ScheduleManager extends Application {
 
     public static void main(String[] args) {
 //        Locale.setDefault(new Locale("fr", "FR"));
+        LoggerUtil.init();
         openDB();
         launch(args);
+
     }
 
 }

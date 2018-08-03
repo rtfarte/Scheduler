@@ -48,7 +48,6 @@ public class AppointmentsByTypeReportController implements Initializable {
         appointmentAmountColumn.setCellValueFactory(new PropertyValueFactory<>("Amount"));
     }
 
-
     private ObservableList<TypeReportView> parseAppointmentList() {
 
         ObservableList<TypeReportView> appointmentList = FXCollections.observableArrayList();
