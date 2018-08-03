@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public class CustomerController implements Initializable {
     private final static Logger LOGGER = Logger.getLogger(LoggerUtil.class.getName());
 
-
+    private static final String DEFAULT_LOCATION = " - ";
 
     @FXML
     private AnchorPane root;
@@ -97,6 +97,7 @@ public class CustomerController implements Initializable {
         String postalCode = postalCodeTextField.getText();
         String phone = phoneTextField.getText();
         String selectedLocation = (String) locationComboBox.getSelectionModel().getSelectedItem();
+        selectedLocation = selectedLocation == null ? DEFAULT_LOCATION : selectedLocation;
         String[] parsedLocation = selectedLocation.split(Pattern.quote("-"));
         String city = parsedLocation[1].trim();
         int cityId = getCityIdFromCityName(city);
@@ -231,6 +232,7 @@ public class CustomerController implements Initializable {
 
     private boolean validateCustomer() {
         String selectedLocation = (String) locationComboBox.getSelectionModel().getSelectedItem();
+        selectedLocation = selectedLocation == null ? DEFAULT_LOCATION : selectedLocation;
         String[] parsedLocation = selectedLocation.split(Pattern.quote("-"));
         String city = parsedLocation[1].trim();
         int cityId = getCityIdFromCityName(city);
@@ -238,7 +240,6 @@ public class CustomerController implements Initializable {
 
         String name = nameTextField.getText();
         String address = addressTextField.getText();
-        String location = (String) locationComboBox.getSelectionModel().getSelectedItem();
         String zip = postalCodeTextField.getText();
         String phone = phoneTextField.getText();
 
@@ -250,7 +251,7 @@ public class CustomerController implements Initializable {
         if (address.isEmpty()) {
             errorMessage += "Please enter an address for the customer.\n";
         }
-        if (location.equals("-")) {
+        if (selectedLocation.equals(DEFAULT_LOCATION)) {
             errorMessage += "Please choose a location for the customer.\n";
         }
         if (zip.isEmpty()) {
