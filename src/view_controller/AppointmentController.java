@@ -35,6 +35,8 @@ import java.util.regex.Pattern;
  */
 public class AppointmentController implements Initializable {
 
+    private static final String DEFAULT_LOCATION = " - ";
+
     @FXML
     private AnchorPane root;
     @FXML
@@ -203,6 +205,9 @@ public class AppointmentController implements Initializable {
 
         //parse location
         String selectedLocation = (String) locationComboBox.getSelectionModel().getSelectedItem();
+        if (selectedLocation == null) {
+            selectedLocation = DEFAULT_LOCATION;
+        }
         String[] parsedLocation = selectedLocation.split(Pattern.quote("-"));
         String city = parsedLocation[1].trim();
 
@@ -211,7 +216,7 @@ public class AppointmentController implements Initializable {
         String title = titleComboBox.getValue();
         String description = descriptionComboBox.getValue();
         int cityId = getCityIdFromCityName(city);
-        String contact = consultantComboBox.getValue().toString();
+        String contact = (String) consultantComboBox.getValue();
         String startHour = startTimeHourComboBox.getValue();
         String startMinute = startTimeMinuteComboBox.getValue();
         String endHour = endTimeHourComboBox.getValue();
@@ -401,37 +406,42 @@ public class AppointmentController implements Initializable {
 //        LocalTime endTime = LocalTime.parse(endComboBox.getSelectionModel().getSelectedItem(), timeDTF);
 //
 //        //first checks to see if inputs are null
+
+        List<String> errors = new ArrayList<>();
+
         if (title == null || title.length() == 0) {
-            errorMessage += "Please enter an appointment title.\n";
+            errors.add("Please enter an appointment title.");
         }
         if (description == null || description.length() == 0) {
-            errorMessage += "Please select an appointment description.\n";
+            errors.add("Please select an appointment description.");
         }
         if (datePicker.getValue() == null) {
-            errorMessage += "Please select a date for this appointment.\n";
+            errors.add("Please select a date for this appointment.");
         }
-//        if (locationComboBox.getValue() == null){
-//            errorMessage += "Please select a location for this appointment";
-//        }
+        if (locationComboBox.getValue() == null){
+            errors.add("Please select a location for this appointment");
+        }
         if (startTimeHourComboBox.getValue() == null || startTimeMinuteComboBox == null) {
-            errorMessage += "Please select a valid start time.\n";
+            errors.add("Please select a valid start time.");
         }
         if (endTimeHourComboBox.getValue() == null || endTimeMinuteComboBox.getValue() == null) {
-            errorMessage += "Please select an valid end time.\n";
+            errors.add("Please select an valid end time.");
         } else if ((Integer.parseInt(startTimeHourComboBox.getValue() + Integer.parseInt(startTimeMinuteComboBox.getValue()))) >= (Integer.parseInt(endTimeHourComboBox.getValue() + Integer.parseInt(endTimeMinuteComboBox.getValue())))) {
-            errorMessage += "Your appointment start and end times are invalid.\n";
+            errors.add("Your appointment start and end times are invalid.");
         }
         //checks user's existing appointments for time conflicts
 //        if (hasAppointmentConflict(startUTC, endUTC)){
-//            errorMessage += "Appointment times conflict with Consultant's existing appointments. Please select a new time.\n";
+//            errors.add("Appointment times conflict with Consultant's existing appointments. Please select a new time.");
 //        }
 //        } catch (SQLException e) {
 //                e.printStackTrace();
 //        }
-//            if (consultantComboBox.getValue() == null) {
-//            throw new NullPointerException( errorMessage += "Please select a consultant for this appointment.");
-//
-//            }
+        if (consultantComboBox.getValue() == null) {
+            errors.add("Please select a consultant for this appointments");
+        }
+
+        errorMessage = String.join("\n", errors);
+
         if (errorMessage.isEmpty()) {
             return true;
         } else {
