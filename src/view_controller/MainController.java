@@ -32,8 +32,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.time.temporal.WeekFields;
 import java.util.*;
 
@@ -98,9 +96,6 @@ public class MainController implements Initializable {
     private ObservableList<AppointmentViewModel> appointmentList;
     private static Customer selectedCustomer;
     private static Appointment selectedAppointment;
-    private DateTimeFormatter dtfTime = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
-    private LocalDate now = LocalDate.now();
-    int offsetSeconds = ZoneOffset.systemDefault().getRules().getOffset(Instant.now()).getTotalSeconds();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -308,8 +303,9 @@ public class MainController implements Initializable {
                         rs.getString("appointment.appointmentid"),
                         rs.getString("appointment.description"),
                         rs.getString("appointment.title"),
-                        rs.getTimestamp("appointment.start").toLocalDateTime().plusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId()),
-                        rs.getTimestamp("appointment.end").toLocalDateTime().plusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId())));
+                        rs.getString("appointment.start"),
+                        rs.getString("appointment.end")
+                ));
             }
             this.appointmentList = appointmentList;
 
@@ -353,8 +349,9 @@ public class MainController implements Initializable {
                         rs.getString("appointment.appointmentid"),
                         rs.getString("appointment.description"),
                         rs.getString("appointment.title"),
-                        rs.getTimestamp("appointment.start").toLocalDateTime().plusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId()),
-                        rs.getTimestamp("appointment.end").toLocalDateTime().plusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId())));
+                        rs.getString("appointment.start"),
+                        rs.getString("appointment.end")
+                ));
             }
             this.appointmentList = appointmentList;
 
@@ -383,9 +380,9 @@ public class MainController implements Initializable {
                         apptsQueryResults.getString("appointmentId"),
                         apptsQueryResults.getString("description"),
                         apptsQueryResults.getString("title"),
-                        apptsQueryResults.getTimestamp("start").toLocalDateTime().atZone(TimeZone.getDefault().toZoneId()),
-                        apptsQueryResults.getTimestamp("end").toLocalDateTime().atZone(TimeZone.getDefault().toZoneId()
-                        )));
+                        apptsQueryResults.getString("start"),
+                        apptsQueryResults.getString("end")
+                        ));
             }
             return customerAppointments;
         } catch (SQLException ex) {

@@ -44,7 +44,7 @@ public class AppointmentController implements Initializable {
     @FXML
     private ComboBox<String> descriptionComboBox;
     @FXML
-    private ComboBox locationComboBox;
+    private ComboBox<String> locationComboBox;
     @FXML
     private DatePicker datePicker;
     @FXML
@@ -56,7 +56,7 @@ public class AppointmentController implements Initializable {
     @FXML
     private ComboBox<String> endTimeMinuteComboBox;
     @FXML
-    private ComboBox consultantComboBox;
+    private ComboBox<String> consultantComboBox;
     @FXML
     private Button btnSave;
     @FXML
@@ -68,9 +68,8 @@ public class AppointmentController implements Initializable {
     private Customer currentCustomer;
     List<Integer> cityIds;
     List<Integer> customerIds;
-    private SimpleDateFormat utcDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static final SimpleDateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     boolean isUpdate;
-    int offsetSeconds = ZoneOffset.systemDefault().getRules().getOffset(Instant.now()).getTotalSeconds();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -349,8 +348,7 @@ public class AppointmentController implements Initializable {
     private String convertToUTC(DatePicker datePicker, String hour, String minute) {
         ZonedDateTime dateTimeLocalTimeZone = datePicker.getValue().atTime(Integer.parseInt(hour), Integer.parseInt(minute)).atZone(TimeZone.getDefault().toZoneId());
         Date utcDate = Date.from(dateTimeLocalTimeZone.toInstant());
-        utcDateTimeFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return utcDateTimeFormatter.format(utcDate);
+        return DATE_TIME_FORMAT.format(utcDate);
     }
 
     public void setAppointmentDetails(int appointmentIdToUpdate) {
@@ -368,17 +366,17 @@ public class AppointmentController implements Initializable {
                 titleComboBox.getSelectionModel().select(rs.getString("title"));
                 descriptionComboBox.getSelectionModel().select(rs.getString("description"));
                 locationComboBox.getSelectionModel().select(getAppointmentLocation(rs.getString("location")));
-                Date startDate = Date.from(rs.getTimestamp("start").toLocalDateTime().minusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId()).toInstant());
-                ZonedDateTime endDate = rs.getTimestamp("end").toLocalDateTime().minusSeconds(offsetSeconds).atZone(TimeZone.getDefault().toZoneId());
+                Date startDate = DATE_TIME_FORMAT.parse(rs.getString("start"));
+                Date endDate = DATE_TIME_FORMAT.parse(rs.getString("end"));
                 datePicker.setValue(startDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
                 startTimeHourComboBox.getSelectionModel().select(pickerHour.format(startDate));
                 startTimeMinuteComboBox.getSelectionModel().select(pickerMinute.format(startDate));
-                endTimeHourComboBox.getSelectionModel().select(DateTimeFormatter.ofPattern("HH").format(endDate));
-                endTimeMinuteComboBox.getSelectionModel().select(DateTimeFormatter.ofPattern("mm").format(endDate));
+                endTimeHourComboBox.getSelectionModel().select(DateTimeFormatter.ofPattern("HH").format(endDate.toInstant().atZone(ZoneId.systemDefault())));
+                endTimeMinuteComboBox.getSelectionModel().select(DateTimeFormatter.ofPattern("mm").format(endDate.toInstant().atZone(ZoneId.systemDefault())));
                 consultantComboBox.getSelectionModel().select(rs.getString("contact"));
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -402,8 +400,10 @@ public class AppointmentController implements Initializable {
         String title = titleComboBox.getValue();
         String description = descriptionComboBox.getValue();
         LocalDate localDate = datePicker.getValue();
-//        LocalTime startTime = LocalTime.parse(startComboBox.getSelectionModel().getSelectedItem(), timeDTF);
-//        LocalTime endTime = LocalTime.parse(endComboBox.getSelectionModel().getSelectedItem(), timeDTF);
+        String startHour = startTimeHourComboBox.getValue();
+        String startMinute = startTimeMinuteComboBox.getValue();
+        String endHour = endTimeHourComboBox.getValue();
+        String endMinute = endTimeMinuteComboBox.getValue();
 //
 //        //first checks to see if inputs are null
 
@@ -415,7 +415,8 @@ public class AppointmentController implements Initializable {
         if (description == null || description.length() == 0) {
             errors.add("Please select an appointment description.");
         }
-        if (datePicker.getValue() == null) {
+        boolean datePresent = localDate != null;
+        if (!datePresent) {
             errors.add("Please select a date for this appointment.");
         }
         if (locationComboBox.getValue() == null){
@@ -429,15 +430,22 @@ public class AppointmentController implements Initializable {
         } else if ((Integer.parseInt(startTimeHourComboBox.getValue() + Integer.parseInt(startTimeMinuteComboBox.getValue()))) >= (Integer.parseInt(endTimeHourComboBox.getValue() + Integer.parseInt(endTimeMinuteComboBox.getValue())))) {
             errors.add("Your appointment start and end times are invalid.");
         }
-        //checks user's existing appointments for time conflicts
-//        if (hasAppointmentConflict(startUTC, endUTC)){
-//            errors.add("Appointment times conflict with Consultant's existing appointments. Please select a new time.");
-//        }
-//        } catch (SQLException e) {
-//                e.printStackTrace();
-//        }
+
         if (consultantComboBox.getValue() == null) {
-            errors.add("Please select a consultant for this appointments");
+            errors.add("Please select a consultant for this appointment");
+        } else if (errors.isEmpty()) {
+
+            String startDateTime = convertToUTC(datePicker, startHour, startMinute);
+            String endDateTime = convertToUTC(datePicker, endHour, endMinute);
+
+            //checks user's existing appointments for time conflicts
+            try {
+                if (hasAppointmentConflict(startDateTime, endDateTime)){
+                    errors.add("Appointment times conflict with Consultant's existing appointments. Please select a new time.");
+                }
+            } catch (Exception e) {
+                    e.printStackTrace();
+            }
         }
 
         errorMessage = String.join("\n", errors);
@@ -449,45 +457,36 @@ public class AppointmentController implements Initializable {
         }
     }
 
-//    private boolean hasAppointmentConflict(ZonedDateTime newStart, ZonedDateTime newEnd) throws SQLException {
-//        String apptID;
-//        String consultant;
-//        if (isOkClicked()) {
-//            //edited appointment
-//            apptID = selectedAppt.getAppointmentId();
-//            consultant = selectedAppt.getUser();
-//        } else {
-//            //new appointment
-//            apptID = "0";
-//            consultant = LoginController.currentUser;
-//        }
-//        System.out.println("ApptID: " + apptID);
-//
-//        try{
-//            PreparedStatement pst = DBManager.getConnection().prepareStatement(
-//                    "SELECT * FROM appointment "
-//                    + "WHERE (? BETWEEN start AND end OR ? BETWEEN start AND end OR ? < start AND ? > end) "
-//                    + "AND (createdBy = ? AND appointmentID != ?)");
-//            pst.setTimestamp(1, Timestamp.valueOf(newStart.toLocalDateTime()));
-//            pst.setTimestamp(2, Timestamp.valueOf(newEnd.toLocalDateTime()));
-//            pst.setTimestamp(3, Timestamp.valueOf(newStart.toLocalDateTime()));
-//            pst.setTimestamp(4, Timestamp.valueOf(newEnd.toLocalDateTime()));
-//            pst.setString(5, consultant);
-//            pst.setString(6, apptID);
-//            ResultSet rs = pst.executeQuery();
-//
-//            if(rs.next()) {
-//                return true;
-//            }
-//
-//        } catch (SQLException e) {
-//            System.out.println("Check your SQL");
-//            e.printStackTrace();
-//        } catch (Exception e) {
-//            System.out.println("Something besides the SQL went wrong.");
-//            e.printStackTrace();
-//        }
-//        return false;
-//    }
+    private boolean hasAppointmentConflict(String newStart, String newEnd) throws SQLException {
+//        int apptID;
+        String consultant = consultantComboBox.getValue();
+        System.out.println("ApptID: " + this.appointmentId);
+
+        try{
+            PreparedStatement pst = DBManager.getConnection().prepareStatement(
+                    "SELECT * FROM appointment "
+                    + "WHERE (? BETWEEN start AND end OR ? BETWEEN start AND end OR ? < start AND ? > end) "
+                    + "AND (createdBy = ? AND appointmentID != ?)");
+            pst.setString(1, newStart);
+            pst.setString(2, newEnd);
+            pst.setString(3, newStart);
+            pst.setString(4, newEnd);
+            pst.setString(5, consultant);
+            pst.setInt(6, appointmentId);
+            ResultSet rs = pst.executeQuery();
+
+            if(rs.next()) {
+                return true;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Check your SQL");
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Something besides the SQL went wrong.");
+            e.printStackTrace();
+        }
+        return false;
+    }
 
 }

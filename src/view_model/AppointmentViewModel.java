@@ -1,5 +1,8 @@
 package view_model;
 
+import static view_controller.AppointmentController.DATE_TIME_FORMAT;
+
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -12,13 +15,17 @@ public class AppointmentViewModel {
     private ZonedDateTime stop;
     private ZonedDateTime start;
 
-    public AppointmentViewModel(String customerName, String id, String description, String type, ZonedDateTime start, ZonedDateTime stop) {
+    public AppointmentViewModel(String customerName, String id, String description, String type, String start, String stop) {
         this.customerName = customerName;
         this.id = id;
         this.description = description;
         this.type = type;
-        this.start = start;
-        this.stop = stop;
+        try {
+            this.start = DATE_TIME_FORMAT.parse(start).toInstant().atZone(ZoneId.systemDefault());
+            this.stop = DATE_TIME_FORMAT.parse(stop).toInstant().atZone(ZoneId.systemDefault());
+        } catch (Exception e) {
+
+        }
     }
 
     public String getCustomTimeDisplay() {
